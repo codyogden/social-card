@@ -1,6 +1,8 @@
 # Social Card Generator
 Generate social media cards for use in `<meta />` tags on the fly.
 
+![Preview of Social Card](.github/preview.png)
+
 ## Getting Started
 
 After installing dependencies, the express server can be run using the following commands:
