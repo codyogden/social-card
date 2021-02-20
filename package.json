@@ -1,0 +1,26 @@
+{
+  "name": "@codyogden/social-card",
+  "version": "1.0.0",
+  "description": "A social card generator.",
+  "main": "index.js",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "puppeteer": "^7.1.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "npx nodemon -e js,mjs,json,html index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/codyogden/social-card.git"
+  },
+  "author": "Cody Ogden <cody@codyogden.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/codyogden/social-card/issues"
+  },
+  "homepage": "https://github.com/codyogden/social-card#readme"
+}
