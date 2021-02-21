@@ -4,6 +4,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const glob = require('glob');
 
 String.prototype.formatUnicorn = function() {
   var str = this.toString();
@@ -46,32 +47,47 @@ app.get(`/${renderPath}`, (req, res) => {
 });
 
 app.get('/', async (req, res) => {
-  const template = getTemplate(req.query.template);
   const queryStr = JSON.stringify(req.query);
-  const filePath = path.resolve(`cached/${crypto.createHash('md5').update(queryStr).digest('hex')}.png`);
+  const queryHash = crypto.createHash('md5').update(queryStr).digest('hex');
+  const newFilePath = path.resolve(__dirname, 'cached') + `/${queryHash}-${new Date().getTime()}.png`;
   return new Promise((resolve) => {
-    if (!fs.existsSync(filePath)) {
-      fs.readFile(template, 'utf8', async function (err, data) {
-        const browser = await puppeteer.launch({
-          defaultViewport: {
-            width: 1200,
-            height: 628,
-            deviceScaleFactor: 2,
-          }
-        });
-
-        const page = await browser.newPage();
-        const url = new URL(`http://localhost:${listener.address().port}/${renderPath}`);
-        Object.keys(req.query).map((key) => url.searchParams.append(key, req.query[key]));
-        await page.goto(url, { waitUntil: 'networkidle0' });
-        await page.screenshot({ path: filePath });
-        await browser.close();
-        resolve();
+    glob(path.resolve(__dirname, 'cached') + `/${queryHash}-*.png`, function (er, files) {
+      if(files.length) {
+        const filePath = files[0];
+        const split = files[0].split('/');
+        const [hash, timestamp] = split[split.length - 1].split('-').reduce((arr, item) => {
+          arr.push(item.split('.')[0]);
+          return arr;
+        }, []);
+        if (!((timestamp + (60 * 60)) < new Date().getTime())) {
+          resolve(filePath);
+        } else {
+          fs.unlinkSync(filePath);
+          resolve(newFilePath);
+        }
+      } else {
+        resolve(newFilePath);
+      }
+    });
+  })
+  .then(async (filePath) => {
+    if(!fs.existsSync(filePath)) {
+      const browser = await puppeteer.launch({
+        defaultViewport: {
+          width: 1200,
+          height: 628,
+          deviceScaleFactor: 2,
+        }
       });
-    } else {
-      resolve();
+
+      const page = await browser.newPage();
+      const url = new URL(`http://localhost:${listener.address().port}/${renderPath}`);
+      Object.keys(req.query).map((key) => url.searchParams.append(key, req.query[key]));
+      await page.goto(url, { waitUntil: 'networkidle0' });
+      await page.screenshot({ path: filePath });
+      await browser.close();
     }
-  }).finally(() => {
-    res.sendFile(filePath);
-  });
+    return filePath;
+  })
+  .then((filePath) => res.sendFile(filePath));
 });

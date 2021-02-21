@@ -6,6 +6,7 @@
   "dependencies": {
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "node-glob": "^1.2.0",
     "puppeteer": "^7.1.0"
   },
   "scripts": {
