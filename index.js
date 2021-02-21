@@ -28,7 +28,7 @@ String.prototype.formatUnicorn = function() {
 const app = express();
 const listener = app.listen(process.env.PORT ?? 3333);
 const renderPath = 'render';
-const cacheLimit = (60 * 60 * 24 * 30); // in seconds
+const cacheLimit = 60 * 60 * 24 * 30; // in seconds
 
 const getTemplate = (template) => {
   const templateName = (template) ? template : 'default';
@@ -48,15 +48,19 @@ app.get(`/${renderPath}`, (req, res) => {
 });
 
 app.get('/', async (req, res) => {
+  // Check for forced cache invalidation
   let force = false;
   if(req.query.force) {
     force = true;
   }
   delete req.query.force;
+
   const queryStr = JSON.stringify(req.query);
   const queryHash = crypto.createHash('md5').update(queryStr).digest('hex');
   const newFilePath = path.resolve(__dirname, 'cached') + `/${queryHash}-${new Date().getTime()}.png`;
+
   return new Promise((resolve) => {
+    // Check for any files with the existing hash
     glob(path.resolve(__dirname, 'cached') + `/${queryHash}-*.png`, function (er, files) {
       if(files.length) {
         const filePath = files[0];
@@ -65,8 +69,13 @@ app.get('/', async (req, res) => {
           arr.push(item.split('.')[0]);
           return arr;
         }, []);
-        if (force || ((timestamp + cacheLimit) < new Date().getTime())) {
-          fs.unlinkSync(filePath);
+
+        // If forcing cache invalidation or the cacheLimit time has passed
+        console.log();
+        if (force || (parseInt(timestamp) + (cacheLimit * 1000)) < new Date().getTime()) {
+          files.forEach((file) => {
+            fs.unlinkSync(file);
+          }); // Delete any files with that hash
           resolve(newFilePath);
         } else {
           resolve(filePath);
@@ -77,7 +86,9 @@ app.get('/', async (req, res) => {
     });
   })
   .then(async (filePath) => {
+    // Double check that a file doesn't already exist
     if(!fs.existsSync(filePath)) {
+      // Run Chrome and screenshot process
       const browser = await puppeteer.launch({
         defaultViewport: {
           width: 1200,
@@ -95,5 +106,6 @@ app.get('/', async (req, res) => {
     }
     return filePath;
   })
+  // Send the image file
   .then((filePath) => res.sendFile(filePath));
 });
