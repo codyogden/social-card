@@ -12,6 +12,9 @@ npm run start
 npm run dev
 ```
 
+## Rendering Flow
+Images are rendered on the fly, stored locally, and served from the stored file. An MD5 hash of the query object is used as the filename. This increases performance and reduces the load on the server.
+
 ## Template
 The template is an HTML file that can be edited as desired. Use `{param_name}` syntax throughout the HTML file for dynamic string replacements when rendering the file or rendering the social card.
 
