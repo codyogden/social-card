@@ -28,7 +28,7 @@ This endpoint lets you preview the card's rendered HTML page that will be used t
 This will return a screenshot `image/png` of the rendered page.
 
 ## Global Query Params
-These query parameters will work on either endpoint.
+These query parameters will work on either endpoint. These query params are all optional based on the template file. Additional params can be added as desired. The `force` query param with any value will force the cached image file to rebuild for that specific query string.
 
 | Query Param      | Type       |
 |------------------|------------|
@@ -40,4 +40,5 @@ These query parameters will work on either endpoint.
 | author_title     | String     |
 | author_image     | URL        |
 | template         | String     |
+| force            | String     |
 
