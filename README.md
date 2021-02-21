@@ -1,5 +1,5 @@
 # Social Card Generator
-Generate social media cards for use in `<meta />` tags on the fly.
+Generate social media cards from any HTML page with dynamic text content for use in `<meta />` tags on the fly.
 
 ![Preview of Social Card](.github/preview.png)
 
