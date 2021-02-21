@@ -47,6 +47,11 @@ app.get(`/${renderPath}`, (req, res) => {
 });
 
 app.get('/', async (req, res) => {
+  let force = false;
+  if(req.query.force) {
+    force = true;
+  }
+  delete req.query.force;
   const queryStr = JSON.stringify(req.query);
   const queryHash = crypto.createHash('md5').update(queryStr).digest('hex');
   const newFilePath = path.resolve(__dirname, 'cached') + `/${queryHash}-${new Date().getTime()}.png`;
@@ -59,11 +64,11 @@ app.get('/', async (req, res) => {
           arr.push(item.split('.')[0]);
           return arr;
         }, []);
-        if (!((timestamp + (60 * 60)) < new Date().getTime())) {
-          resolve(filePath);
-        } else {
+        if (force || ((timestamp + (60 * 60)) < new Date().getTime())) {
           fs.unlinkSync(filePath);
           resolve(newFilePath);
+        } else {
+          resolve(filePath);
         }
       } else {
         resolve(newFilePath);
