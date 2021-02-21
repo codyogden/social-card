@@ -28,19 +28,30 @@ const app = express();
 const listener = app.listen(process.env.PORT ?? 3333);
 const renderPath = 'render';
 
+const getTemplate = (template) => {
+  const templateName = (template) ? template : 'default';
+  if (fs.existsSync(path.resolve(`templates/${templateName}.html`))) {
+    return path.resolve(`templates/${templateName}.html`);
+  } else {
+    return path.resolve(`templates/default.html`)
+  }
+};
+
 app.get(`/${renderPath}`, (req, res) => {
-  fs.readFile('template.html', 'utf8', async function (err, data) {
+  const template = getTemplate(req.query.template);
+  fs.readFile(template, 'utf8', async function (err, data) {
     res.writeHead(200, null, { 'Content-Type': 'text/html' });
     res.end(data.formatUnicorn(req.query));
   });
 });
 
 app.get('/', async (req, res) => {
+  const template = getTemplate(req.query.template);
   const queryStr = JSON.stringify(req.query);
   const filePath = path.resolve(`cached/${crypto.createHash('md5').update(queryStr).digest('hex')}.png`);
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!fs.existsSync(filePath)) {
-      fs.readFile('template.html', 'utf8', async function (err, data) {
+      fs.readFile(template, 'utf8', async function (err, data) {
         const browser = await puppeteer.launch({
           defaultViewport: {
             width: 1200,

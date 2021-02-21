@@ -18,6 +18,8 @@ Images are rendered on the fly, stored locally, and served from the stored file.
 ## Template
 The template is an HTML file that can be edited as desired. Use `{param_name}` syntax throughout the HTML file for dynamic string replacements when rendering the file or rendering the social card.
 
+Multiple templates can be used by specifying the `template={fileName}` query parameter (no file extension). If a template query param is not passed, is blank, or does not exist, the `default.html` template will be used.
+
 ### localhost:{port}/render
 This endpoint lets you preview the card's rendered HTML page that will be used to grab a screenshot and produce the image.
 
@@ -37,4 +39,5 @@ These query parameters will work on either endpoint.
 | author_name      | String     |
 | author_title     | String     |
 | author_image     | URL        |
+| template         | String     |
 
