@@ -2,6 +2,8 @@ require('dotenv').config();
 const puppeteer = require('puppeteer');
 const express = require('express');
 const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 String.prototype.formatUnicorn = function() {
   var str = this.toString();
@@ -34,22 +36,31 @@ app.get(`/${renderPath}`, (req, res) => {
 });
 
 app.get('/', async (req, res) => {
-  fs.readFile('template.html', 'utf8', async function (err, data) {
-    const browser = await puppeteer.launch({
-      defaultViewport: {
-        width: 1200,
-        height: 628,
-        deviceScaleFactor: 2,
-      }
-    });
+  const queryStr = JSON.stringify(req.query);
+  const filePath = path.resolve(`cached/${crypto.createHash('md5').update(queryStr).digest('hex')}.png`);
+  return new Promise((resolve, reject) => {
+    if (!fs.existsSync(filePath)) {
+      fs.readFile('template.html', 'utf8', async function (err, data) {
+        const browser = await puppeteer.launch({
+          defaultViewport: {
+            width: 1200,
+            height: 628,
+            deviceScaleFactor: 2,
+          }
+        });
 
-    const page = await browser.newPage();
-    const url = new URL(`http://localhost:${listener.address().port}/${renderPath}`);
-    Object.keys(req.query).map((key) => url.searchParams.append(key, req.query[key]));
-    await page.goto(url, {waitUntil: 'networkidle0'});
-    res.writeHead(200, null, { 'Content-Type': 'image/png' });
-    const buffer = await page.screenshot();
-    res.end(Buffer.from(buffer, 'base64'));
-    await browser.close();
+        const page = await browser.newPage();
+        const url = new URL(`http://localhost:${listener.address().port}/${renderPath}`);
+        Object.keys(req.query).map((key) => url.searchParams.append(key, req.query[key]));
+        await page.goto(url, { waitUntil: 'networkidle0' });
+        await page.screenshot({ path: filePath });
+        await browser.close();
+        resolve();
+      });
+    } else {
+      resolve();
+    }
+  }).finally(() => {
+    res.sendFile(filePath);
   });
 });
