@@ -28,6 +28,7 @@ String.prototype.formatUnicorn = function() {
 const app = express();
 const listener = app.listen(process.env.PORT ?? 3333);
 const renderPath = 'render';
+const cacheLimit = (60 * 60 * 24 * 30); // in seconds
 
 const getTemplate = (template) => {
   const templateName = (template) ? template : 'default';
@@ -64,7 +65,7 @@ app.get('/', async (req, res) => {
           arr.push(item.split('.')[0]);
           return arr;
         }, []);
-        if (force || ((timestamp + (60 * 60)) < new Date().getTime())) {
+        if (force || ((timestamp + cacheLimit) < new Date().getTime())) {
           fs.unlinkSync(filePath);
           resolve(newFilePath);
         } else {
